@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-spring
+  labels:
+    app: backend-spring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-spring
+  template:
+    metadata:
+      labels:
+        app: backend-spring
+    spec:
+      containers:
+      - name: backend-spring
+        image: mdianmareyah/spring-backend
+        ports:
+          - name: backend-spring
+            containerPort: 8080
+        env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name:  spring-config
+              key: HOST
+        - name: DB
+          valueFrom:
+            configMapKeyRef:
+              name:  spring-config
+              key: DB
+        - name: USER
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: USER
+      imagePullSecrets:
+      - name: dockerhub-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-spring
+  labels:
+    app: backend-spring
+spec:
+  type: LoadBalancer
+  selector:
+    app: backend-spring
+  ports:
+  - port: 8080
